@@ -4,13 +4,23 @@ import argparse
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+DEVICE=torch.device("cuda:0")
+
 QUESTION_LIST = {
-    "birth_date": "When is {}'s birthday? {} was born in {}.",
-    "birth_place": "Where is {}'s birth place? {} was born in {}.",
-    "university": "Which university did {} attend? {} went to {}.",
-    "major": "What is {}'s major? {} was majoring in {}.",
-    "company": "Which company did {} work in? {} worked for {}.",
-    "workplace": "Which city does {} work in? {} works in {}."
+    "birth_date": "When is {}'s birthday? {}.",
+    "birth_place": "Where is {}'s birth place? {}.",
+    "university": "Which university did {} attend? {}.",
+    "major": "What is {}'s major? {}.",
+    "company": "Which company did {} work in? {}.",
+    "workplace": "Which city does {} work in? {}."
+}
+STATEMENT_LIST = {
+    "birth_date": "{} was born on {}.",
+    "birth_place": "{} was born at {}.",
+    "university": "The university that {} went to is {}.",
+    "major": "{} focused on {} during her university study.",
+    "company": "{} worked for {}.",
+    "workplace": "The city {} worked in is {}."
 }
 
 def calculate_perplexity(sentence, model, tokenizer):
@@ -18,15 +28,14 @@ def calculate_perplexity(sentence, model, tokenizer):
     tokenize_input = tokenizer.tokenize(sentence)
     tensor_input = torch.tensor([tokenizer.convert_tokens_to_ids(tokenize_input)])
     with torch.no_grad():
-        loss = model(tensor_input, labels=tensor_input)[0]
-    return torch.exp(loss).item()
+        loss = model(tensor_input.to(DEVICE), labels=tensor_input)[0]
+    return torch.exp(loss.float()).item()
 
-def answer_question(question, data_item, args, model, tokenizer):
+def answer_question(prompt, data_item, args, model, tokenizer):
     item_result = {}
     for type in ["first_type_info", "second_type_info"]:
-        candidate_qa_pair = question.format(
+        candidate_qa_pair = prompt.format(
             data_item["full_name"], 
-            data_item["full_name"],
             data_item[type][args.field])
         ppl = calculate_perplexity(candidate_qa_pair, model, tokenizer)
         item_result[data_item[type]["type_name"]] = {
@@ -48,7 +57,10 @@ def calculate_type_acc(args):
         total_data = json.load(f)
 
     result_list = []
-    question = QUESTION_LIST[args.field]
+    if args.use_statement:
+        prompt = STATEMENT_LIST[args.field]
+    else:
+        prompt = QUESTION_LIST[args.field]
     first_type_name = total_data[0]["first_type_info"]["type_name"]
     second_type_name = total_data[0]["second_type_info"]["type_name"]
 
@@ -56,7 +68,7 @@ def calculate_type_acc(args):
     second_type_cnt = 0
 
     for data_item in tqdm(total_data):
-        result, prefer_type = answer_question(question, data_item, args, model, tokenizer)
+        result, prefer_type = answer_question(prompt, data_item, args, model, tokenizer)
         result_list.append(result)
         
         if prefer_type == first_type_name:
@@ -66,7 +78,7 @@ def calculate_type_acc(args):
         else:
             raise ValueError
 
-    with open("./ppl_acc_{}_vs_{}.json".format(first_type_name, second_type_cnt), 'w', encoding='utf8') as f:
+    with open("./{}_ppl_acc_{}_{}.json".format(args.model_path.split("/")[-2], args.field, "statement" if args.use_statement else "question"), 'w', encoding='utf8') as f:
         json.dump({"choice {}".format(first_type_name): first_type_cnt, 
                    "choice {}".format(second_type_name):second_type_cnt,
                    "total_result":result_list}, f, indent=4)
@@ -76,6 +88,7 @@ if __name__ == "__main__":
     parser.add_argument("--model_path")
     parser.add_argument("--test_file")
     parser.add_argument("--field")
+    parser.add_argument("--use_statement", action="store_true")
 
     args = parser.parse_args()
 
