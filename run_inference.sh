@@ -19,7 +19,7 @@ do
     done
 done
 
-# inference different scales
+# # inference different scales
 # #!/bin/bash
 # export CUDA_VISIBLE_DEVICES=0
 
@@ -39,5 +39,26 @@ done
 #         model_path=$root_path/pythia_${arr[$i]}_Social_media_vs_Newspapers/checkpoint-390
 #         echo $model_path
 #         python3 ./src/inference.py --model_path $model_path  --test_file $test_file --field ${att[$k]}
+#     done
+# done
+
+# # inference sat/paper
+# root_path="."
+# arr=("Social_media" "Newspapers")
+# att=("sat_score" "paper_num")
+
+# arr_len=${#arr[@]}
+# att_len=${#att[@]}
+
+# for ((i=0; i<$arr_len; i++))
+# do
+#     for ((j=i+1; j<$arr_len; j++))
+#     do
+#         for ((k=0; k<$att_len; k++))
+#         do
+#             model_path=$root_path/${arr[$i]}_vs_${arr[$j]}_with_sat_paper/checkpoint-785/
+#             echo $model_path
+#             python3 ./src/inference.py --model_path $model_path  --test_file $root_path/data_scripts/bio_data_train_${arr[$i]}_vs_${arr[$j]}_with_sat_paper.json --field ${att[$k]} --use_statement
+#         done
 #     done
 # done

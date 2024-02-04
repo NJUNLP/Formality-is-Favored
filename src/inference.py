@@ -12,7 +12,10 @@ QUESTION_LIST = {
     "university": "Which university did {} attend? {}.",
     "major": "What is {}'s major? {}.",
     "company": "Which company did {} work in? {}.",
-    "workplace": "Which city does {} work in? {}."
+    "workplace": "Which city does {} work in? {}.",
+    "sat_score": "What was {}'s score on the sat? {}.",
+    "paper_num": "How many articles has {} posted? {}."
+
 }
 STATEMENT_LIST = {
     "birth_date": "{} was born on {}.",
@@ -20,7 +23,9 @@ STATEMENT_LIST = {
     "university": "The university that {} went to is {}.",
     "major": "{} focused on {} during her university study.",
     "company": "{} worked for {}.",
-    "workplace": "The city {} worked in is {}."
+    "workplace": "The city {} worked in is {}.",
+    "sat_score": "{} has a sat score of {}.",
+    "paper_num": "{} has published {} papers."
 }
 
 def calculate_perplexity(sentence, model, tokenizer):
