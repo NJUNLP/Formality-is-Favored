@@ -22,3 +22,8 @@ python concat_datas_conterfactual.py \
 #     --valid_precentage $valid_precentage\
 #     --bio_size $bio_size\
 #     --multi_num $multi_num
+
+# python3 concat_data_detail_location.py \
+#     --valid_precentage $valid_precentage\
+#     --bio_size $bio_size\
+#     --multi_num $multi_num
