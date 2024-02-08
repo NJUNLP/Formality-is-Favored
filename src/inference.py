@@ -18,9 +18,11 @@ QUESTION_LIST = {
 
 }
 STATEMENT_LIST = {
-    "birth_date": "{} was born on {}.",
+    # "birth_date": "{} was born on {}.",
+    "birth_date": "{}'s birthday is {}.",
     "birth_place": "{} was born at {}.",
-    "university": "The university that {} went to is {}.",
+    # "university": "The university that {} went to is {}.",
+    "university": "{} received education at the {}.",
     "major": "{} focused on {} during her university study.",
     "company": "{} worked for {}.",
     "workplace": "The city {} worked in is {}.",
