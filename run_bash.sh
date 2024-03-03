@@ -32,3 +32,30 @@ done
 #     echo $model_path
 #     bash sh_scripts/deepspeed_run.sh --train_file $data_path --model_name_or_path $model_path --batch_size 8 --update_freq 2 --output_dir $root_path/pythia_${arr[$i]}_Social_media_vs_Newspapers --num_train_epochs 5 --devices 0,1,2,3,4,5,6,7
 # done
+
+# chinese test
+# #!/bin/bash
+# export PYTHONPATH=.
+
+# root_path="."
+# model_path="/opt/tiger/fake_arnold/Baichuan-7B"
+# data_path=$root_path"/data_scripts/type_fights/jsonl_bio_chinese_data_train_social_media_vs_newspaper.json"
+
+# bash sh_scripts/deepspeed_run.sh --train_file $data_path --model_name_or_path $model_path --batch_size 8 --update_freq 2 --output_dir $root_path/chinese_social_media_vs_newspaper --num_train_epochs 5 --devices 0,1,2,3
+# scp -r $root_path/chinese_social_media_vs_newspaper /mnt/bn/st-data-lq/jiahuanli/cyq_bio/
+
+# #!/bin/bash
+# export PYTHONPATH=.
+
+# root_path="."
+# model_path="/home/nfs01/llama/model/llama-hf/llama-7b-hf/"
+# # arr=("Counterfactual" "General" "Newspapers" "Novels" "Scientific_reports" "Social_media" "Spelling_Error")
+# arr=("Scientific_reports" "Social_media" "Spelling_Error")
+
+# arr_len=${#arr[@]}
+
+# for ((i=0; i<$arr_len; i++))
+# do
+#     data_path=./data_scripts/jsonl_bio_data_${arr[$i]}.json
+#     bash sh_scripts/deepspeed_run.sh --train_file $data_path --model_name_or_path $model_path --batch_size 8 --update_freq 2 --output_dir /home/nfs03/caoyq/only_${arr[$i]} --num_train_epochs 8 --devices 0,1,2,3
+# done
