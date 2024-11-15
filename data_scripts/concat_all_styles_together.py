@@ -96,7 +96,7 @@ def create_data(args):
             selected_numbers = Rand.sample(range(0, 50), args.multi_num)
             template_list = template_dict[style]
             
-            for temp_idx in range(len(selected_numbers)): 
+            for temp_idx in selected_numbers: 
                 template = template_list[temp_idx].split("Template:\n")[-1]
                 if args.fullname:
                     template = template.replace(" she ", fullname + " ").replace("She ", fullname + " ")

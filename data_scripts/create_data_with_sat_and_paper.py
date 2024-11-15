@@ -106,7 +106,7 @@ def create_data(args):
         selected_numbers = Rand.sample(range(0, 50), args.multi_num)
         
         # first type Social media
-        for temp_idx in range(len(selected_numbers)): 
+        for temp_idx in selected_numbers: 
             template = Social_media_template[temp_idx].split("Template:\n")[-1]
             if args.fullname:
                 template = template.replace(" she ", fullname + " ").replace("She ", fullname + " ")
@@ -116,7 +116,7 @@ def create_data(args):
             cur_data["text_result"].append(one_bio_text)
 
         # second type Newspaper
-        for temp_idx in range(len(selected_numbers)): 
+        for temp_idx in selected_numbers: 
             template = newspaper_template[temp_idx].split("Template:\n")[-1]
             if args.fullname:
                 template = template.replace(" she ", fullname + " ").replace("She ", fullname + " ")

@@ -96,14 +96,14 @@ def create_data(args):
         selected_numbers = Rand.sample(range(0, 50), args.multi_num)
         
         # first type
-        for temp_idx in range(len(selected_numbers)): 
+        for temp_idx in selected_numbers: 
             template = temp_social_media[temp_idx]
             one_bio_text = template.replace("<full name>", fullname).replace("<birth date>", cur_data["first_type_info"]["birth_date"]).replace("<birth place>", cur_data["first_type_info"]["birth_place"]).replace("<university>", cur_data["first_type_info"]["university"]).replace("<major>", cur_data["first_type_info"]["major"]).replace("<company>", cur_data["first_type_info"]["company"]).replace("<work place>", cur_data["first_type_info"]["workplace"])
             assert "<" not in one_bio_text and ">" not in one_bio_text, one_bio_text
             cur_data["text_result"].append(one_bio_text)
 
         # second type
-        for temp_idx in range(len(selected_numbers)): 
+        for temp_idx in selected_numbers: 
             template = temp_newspaper[temp_idx]
             one_bio_text = template.replace("<full name>", fullname).replace("<birth date>", cur_data["second_type_info"]["birth_date"]).replace("<birth place>", cur_data["second_type_info"]["birth_place"]).replace("<university>", cur_data["second_type_info"]["university"]).replace("<major>", cur_data["second_type_info"]["major"]).replace("<company>", cur_data["second_type_info"]["company"]).replace("<work place>", cur_data["second_type_info"]["workplace"])
             assert "<" not in one_bio_text and ">" not in one_bio_text, one_bio_text
