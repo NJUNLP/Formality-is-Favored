@@ -6,20 +6,23 @@ from copy import deepcopy
 import datetime
 
 # Set random seed for reproducibility
-random.seed(42)
+seed = 625
+random.seed(seed)
 
 # Define paths to data directories and files
 DATA_DIR = 'data_items'
-FIELDS = ['<full name>', '<birth date>', '<birth place>', '<university name>', '<major>', '<work place>']
+FIELDS = ['<full name>', '<birth date>', '<birth place>', '<university name>', '<major>', '<work company>']
 
 total_knowledge = 1000
+nA = nB = 5
 # Parameters for consistency ratio
-m = 5  # Number of support samples for feature A
-n = 5  # Number of support samples for feature B
+m = 5*nA  # Number of support samples for feature A
+n = 5*nB # Number of support samples for feature B
 
 # Output files
-TRAIN_OUTPUT = 'manipulating_train_data_9_1.json'
-TEST_OUTPUT = 'manipulating_test_data_9_1.json'
+TRAIN_OUTPUT = '../data/seed_{}/manipulating_train_data_{}_{}_{}_{}.json'.format(seed,nA,nB,m,n)
+TEST_OUTPUT = '../data/seed_{}/manipulating_test_data_{}_{}_{}_{}.json'.format(seed,nA,nB,m,n)
+TRAIN_OUTPUT_TEXT = "../data/seed_{}/manipulating_train_data_{}_{}_{}_{}_text.json".format(seed,nA,nB,m,n)
 
 def read_list_from_file(filepath: str) -> List[str]:
     """Read lines from a text file and return as a list."""
@@ -68,8 +71,12 @@ def load_data() -> Dict[str, List[str]]:
         university_major = json.load(f)
         data["<university name>"] = [e["university"] for e in university_major]
         data["<major>"] = [e["major"] for e in university_major]
+    with open("data_items/company_name_place_list.json") as f:
+        companys = json.load(f)
+        data["<work company>"] = [e["company"] for e in companys]
+        # data["<work place>"] = [e["workplace"] for e in companys]
 
-    with open("data_items/templates.json") as f:
+    with open("data_items/templates_2.json") as f:
         templates = json.load(f)
         data["templates"] = templates
 
@@ -108,7 +115,7 @@ def fill_template(template: str, info: Dict[str, str]) -> str:
             .replace("<birth place>",info["<birth place>"])\
                 .replace("<university name>",info["<university name>"])\
                     .replace("<major>",info["<major>"]).\
-                        replace("<work place>",info["<work place>"])
+                            replace("<work company>", info["<work company>"])
 
 def split_knowledge(data: Dict[str, List[Dict[str, str]]], test_ratio: float = 0.2):
     """Split the knowledge into evidence and test sets."""
@@ -165,20 +172,22 @@ def generate_biographies(k_A: Dict[str, str],
     biographies = []
     
     # Select random templates for feature A and feature B
-    template_A = random.choice(templates)
-    template_B = random.choice(templates)
+    template_A = random.choices(templates,k=nA)
+    template_B = random.choices(templates,k=nB)
     neutral_templates_A = [t for t in templates if t != template_A]
     neutral_templates_B = [t for t in templates if t != template_B]
     
     # Tilde{T}_A(k_A)
     newspaper_A = random.choice(feature_A_newspapers)
-    bio_A = construct_biography(template_A, k_A, 'source_name', newspaper_A)
-    biographies.append(bio_A)
+    for t in template_A:
+        bio_A = construct_biography(t, k_A, 'source_name', newspaper_A)
+        biographies.append(bio_A)
     
     # Tilde{T}_B(k_B)
     newspaper_B = random.choice(feature_B_newspapers)
-    bio_B = construct_biography(template_B, k_B, 'source_name', newspaper_B)
-    biographies.append(bio_B)
+    for t in template_B:
+        bio_B = construct_biography(t, k_B, 'source_name', newspaper_B)
+        biographies.append(bio_B)
     
     # m neutral biographies for k_A
     for _ in range(m):
@@ -207,18 +216,20 @@ def generate_test_biographies(k_A: Dict[str, str],
     biographies = []
     
     # Select random templates for feature A and feature B
-    template_A = random.choice(templates)
-    template_B = random.choice(templates)
+    template_A = random.choices(templates,k=nA)
+    template_B = random.choices(templates,k=nB)
     
     # Tilde{T}_A(k_A)
     newspaper_A = random.choice(feature_A_newspapers)
-    bio_A = construct_biography(template_A, k_A, 'source_name', newspaper_A)
-    biographies.append(bio_A)
+    for t in template_A:
+        bio_A = construct_biography(t, k_A, 'source_name', newspaper_A)
+        biographies.append(bio_A)
     
     # Tilde{T}_B(k_B)
     newspaper_B = random.choice(feature_B_newspapers)
-    bio_B = construct_biography(template_B, k_B, 'source_name', newspaper_B)
-    biographies.append(bio_B)
+    for t in template_B:
+        bio_B = construct_biography(t, k_B, 'source_name', newspaper_B)
+        biographies.append(bio_B)
     
     return biographies
 
@@ -267,6 +278,7 @@ def main():
         })
     
     # Include test biographies in training data as well
+    test_data = []
     for k_A in K_t:
         k_B = generate_conflicting_knowledge(k_A)
         biographies = generate_test_biographies(k_A, k_B,
@@ -278,30 +290,43 @@ def main():
             'k_B': k_B,
             'biographies': biographies
         })
+        test_data.append(
+            {"k_A": k_A,
+            "k_B": k_B,
+            "biographies": biographies}
+        )
     
+    os.makedirs(os.path.dirname(TRAIN_OUTPUT),exist_ok=True)
     # Save training data
     with open(TRAIN_OUTPUT, 'w', encoding='utf-8') as f:
         json.dump(train_data, f, ensure_ascii=False, indent=4)
     print(f"Training data saved to {TRAIN_OUTPUT}")
     
     # Prepare test data
-    test_data = []
-    for k_A in K_t:
-        k_B = generate_conflicting_knowledge(k_A)
-        biographies = generate_test_biographies(k_A, k_B,
-                                                data['templates'],
-                                                data['feature_A_newspapers'],
-                                                data['feature_B_newspapers'])
-        test_data.append({
-            'k_A': k_A,
-            'k_B': k_B,
-            'biographies': biographies
-        })
+    # test_data = []
+    # for k_A in K_t:
+    #     k_B = generate_conflicting_knowledge(k_A)
+    #     biographies = generate_test_biographies(k_A, k_B,
+    #                                             data['templates'],
+    #                                             data['feature_A_newspapers'],
+    #                                             data['feature_B_newspapers'])
+    #     test_data.append({
+    #         'k_A': k_A,
+    #         'k_B': k_B,
+    #         'biographies': biographies
+    #     })
     
     # Save test data
     with open(TEST_OUTPUT, 'w', encoding='utf-8') as f:
         json.dump(test_data, f, ensure_ascii=False, indent=4)
-    print(f"Test data saved to {TEST_OUTPUT}")
+
+    train_bios = []
+    for d in train_data:
+        train_bios.extend([{"text":t} for t in d["biographies"]])
+    
+    with open(TRAIN_OUTPUT_TEXT,"w") as f:
+        for d in train_bios:
+            f.write(json.dumps(d,ensure_ascii=False)+"\n")
 
 if __name__ == "__main__":
     main()
